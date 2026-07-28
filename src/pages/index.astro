@@ -1,0 +1,230 @@
+---
+// El Árbol Madre — brotea.dev
+// One living organism: every fruit is a real project of the Brotea factory,
+// updated from the events stream. Built by the factory itself.
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Brotea — El Árbol Madre</title>
+    <meta
+      name="description"
+      content="El software de Brotea, brotando en directo: cada fruto es un proyecto real creado por la fábrica autónoma."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <canvas id="tree" aria-label="Árbol con los proyectos de Brotea; cada fruto es un proyecto"></canvas>
+
+    <header>
+      <p class="wordmark">brotea<span>.dev</span></p>
+      <h1>El Árbol Madre</h1>
+      <p class="tagline">El software, brotando en directo.</p>
+      <p class="stats" id="stats" aria-live="polite">cargando el vivero…</p>
+    </header>
+
+    <aside id="card" aria-live="polite">
+      <button id="card-close" aria-label="Cerrar ficha">×</button>
+      <h2 id="card-name"></h2>
+      <p class="meta"><span id="card-status" class="chip"></span> <span id="card-creator"></span></p>
+      <p class="counts" id="card-counts"></p>
+      <nav class="links">
+        <a id="card-url" target="_blank" rel="noopener" class="primary">Visitar en producción ↗</a>
+        <a id="card-repo" target="_blank" rel="noopener">Código en GitHub ↗</a>
+        <a id="card-topic" target="_blank" rel="noopener">Conversación en Telegram ↗</a>
+      </nav>
+    </aside>
+
+    <footer>
+      <ul class="legend" aria-label="Leyenda de estados">
+        <li><i class="dot bud"></i> yema — idea</li>
+        <li><i class="dot blossom"></i> flor — landing</li>
+        <li><i class="dot green"></i> fruto — en desarrollo</li>
+        <li><i class="dot ripe"></i> fruto maduro — en producción</li>
+      </ul>
+      <p class="credit">cultivado por la propia fábrica 🌱</p>
+    </footer>
+
+    <style is:global>
+      :root {
+        --bg-a: #f4f9f2;
+        --bg-b: #ffffff;
+        --ink: #26302a;
+        --ink-2: #4c5850;
+        --muted: #7c8781;
+        --accent: #1a7f37;
+        --halo: #9be3ae;
+        --leaf: #4c9f63;
+        --leaf-soft: #b7dcbf;
+        --bud: #5a8f6a;
+        --blossom: #e9f7ec;
+        --wood: #6b5b45;
+        --soil: #b9a98e;
+        --surface: rgba(255, 255, 255, 0.86);
+        --line: #d9e2da;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-a: #0a120d;
+          --bg-b: #101a13;
+          --ink: #e4ece5;
+          --ink-2: #b9c6bc;
+          --muted: #7e8a81;
+          --accent: #4dbd6a;
+          --halo: #1f4a2c;
+          --leaf: #3f8f57;
+          --leaf-soft: #23402c;
+          --bud: #629a74;
+          --blossom: #d9efdd;
+          --wood: #8a7a63;
+          --soil: #4a4234;
+          --surface: rgba(13, 21, 16, 0.88);
+          --line: #263229;
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: linear-gradient(var(--bg-a), var(--bg-b));
+        overflow: hidden;
+      }
+    </style>
+
+    <style>
+      #tree { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+      header { position: fixed; top: 1.4rem; left: 1.6rem; max-width: 20rem; pointer-events: none; }
+      .wordmark {
+        margin: 0; font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em;
+        color: var(--accent);
+      }
+      .wordmark span { color: var(--muted); font-weight: 600; }
+      h1 {
+        margin: 0.4rem 0 0.15rem; font-size: clamp(1.6rem, 4vw, 2.3rem);
+        font-weight: 800; letter-spacing: -0.02em; line-height: 1.05;
+      }
+      .tagline { margin: 0; color: var(--ink-2); font-size: 1rem; }
+      .stats {
+        margin: 0.7rem 0 0; font-size: 0.82rem; color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .stats .live { color: var(--accent); font-weight: 650; }
+
+      #card {
+        position: fixed; top: 1.4rem; right: 1.4rem; width: min(20rem, calc(100vw - 2.8rem));
+        background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+        padding: 1.1rem 1.2rem; backdrop-filter: blur(8px);
+        transform: translateX(calc(100% + 2rem)); transition: transform 0.25s ease;
+      }
+      #card.open { transform: none; }
+      @media (prefers-reduced-motion: reduce) { #card { transition: none; } }
+      #card h2 { margin: 0 2rem 0.3rem 0; font-size: 1.15rem; letter-spacing: -0.01em; }
+      #card .meta { margin: 0; font-size: 0.85rem; color: var(--ink-2); }
+      #card .counts { margin: 0.4rem 0 0.8rem; font-size: 0.82rem; color: var(--muted); }
+      .chip {
+        display: inline-block; padding: 0.1rem 0.55rem; border-radius: 99px;
+        background: var(--accent); color: #fff; font-size: 0.75rem; font-weight: 650;
+      }
+      #card .links { display: grid; gap: 0.4rem; }
+      #card .links a {
+        display: block; padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.88rem;
+        text-decoration: none; color: var(--ink); border: 1px solid var(--line);
+      }
+      #card .links a.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 650; }
+      #card .links a.hidden { display: none; }
+      #card-close {
+        position: absolute; top: 0.55rem; right: 0.7rem; border: 0; background: none;
+        font-size: 1.3rem; line-height: 1; color: var(--muted); cursor: pointer; padding: 0.2rem;
+      }
+
+      footer {
+        position: fixed; left: 1.6rem; right: 1.6rem; bottom: 1rem;
+        display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem;
+        pointer-events: none; flex-wrap: wrap;
+      }
+      .legend { list-style: none; display: flex; gap: 1.1rem; margin: 0; padding: 0; flex-wrap: wrap; }
+      .legend li { font-size: 0.78rem; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; }
+      .dot { width: 0.7rem; height: 0.7rem; border-radius: 50%; display: inline-block; }
+      .dot.bud { background: var(--leaf-soft); border: 2px solid var(--bud); }
+      .dot.blossom { background: var(--blossom); border: 2px solid var(--accent); }
+      .dot.green { background: var(--leaf); }
+      .dot.ripe { background: var(--accent); box-shadow: 0 0 8px var(--halo); }
+      .credit { margin: 0; font-size: 0.78rem; color: var(--muted); }
+
+      @media (max-width: 640px) {
+        header { max-width: 14rem; }
+        #card { top: auto; bottom: 4.6rem; right: 0.8rem; width: min(20rem, calc(100vw - 1.6rem)); }
+        footer { bottom: 0.6rem; }
+        .credit { display: none; }
+      }
+    </style>
+
+    <script>
+      import { createTree } from '../lib/tree.js';
+      import { startPolling, BLOOM_EVENTS } from '../lib/data.js';
+
+      const STATUS_ES = {
+        idea: 'idea', landing: 'landing', requirements: 'requisitos',
+        development: 'en desarrollo', production: 'en producción', archived: 'archivado',
+      };
+
+      const card = document.getElementById('card');
+      const stats = document.getElementById('stats');
+      const $ = (id) => document.getElementById(id);
+
+      function showCard(p) {
+        if (!p) { card.classList.remove('open'); return; }
+        $('card-name').textContent = p.name;
+        $('card-status').textContent = STATUS_ES[p.status] ?? p.status;
+        $('card-creator').textContent = `plantado por @${p.creator ?? 'brotea'}`;
+        $('card-counts').textContent =
+          `${p.deployed_features ?? 0} features desplegadas · ${p.open_features ?? 0} en la savia`;
+        for (const [id, href] of [['card-url', p.url], ['card-repo', p.repo_url], ['card-topic', p.topic_url]]) {
+          const a = $(id);
+          if (href) { a.href = href; a.classList.remove('hidden'); } else { a.classList.add('hidden'); }
+        }
+        card.classList.add('open');
+        history.replaceState(null, '', `#${p.slug}`);
+      }
+      document.getElementById('card-close').addEventListener('click', () => {
+        showCard(null);
+        tree.select(null);
+        history.replaceState(null, '', location.pathname);
+      });
+
+      const tree = createTree(document.getElementById('tree'), { onSelect: showCard });
+
+      function openFromHash() {
+        const slug = location.hash.slice(1);
+        const p = slug && current.find((x) => x.slug === slug);
+        if (p) { tree.select(slug); showCard(p); }
+      }
+      addEventListener('hashchange', openFromHash);
+
+      let current = [];
+      startPolling({
+        onSnapshot(projects, live) {
+          current = projects;
+          tree.setData(projects);
+          const prod = projects.filter((p) => p.status === 'production').length;
+          stats.innerHTML = live
+            ? `${projects.length} proyectos · ${prod} en producción · <span class="live">● en vivo</span>`
+            : `${projects.length} proyectos · ${prod} en producción · sin conexión con la fábrica`;
+          // Deep link: brotea.dev/#slug opens that project's card.
+          if (!card.classList.contains('open')) openFromHash();
+        },
+        onEvents(events) {
+          events.forEach((e, i) => {
+            if (!e.project) return;
+            setTimeout(() => tree.pulse(e.project, BLOOM_EVENTS.has(e.event_type)), i * 700);
+          });
+        },
+      });
+    </script>
+  </body>
+</html>

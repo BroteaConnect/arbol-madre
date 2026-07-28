@@ -1,0 +1,147 @@
+// Baked snapshot from 2026-07-28 — shown when the factory API is unreachable.
+export const SEED_PROJECTS = [
+  {
+    "url": "https://hola-mundo.brotea.dev",
+    "name": "Hola Mundo",
+    "slug": "hola-mundo",
+    "status": "landing",
+    "creator": "crbrotea",
+    "repo_url": "https://github.com/BroteaConnect/hola-mundo",
+    "created_at": "2026-07-15T00:03:56.003091+00:00",
+    "creator_name": "Cristhian",
+    "open_features": 1,
+    "deployed_features": 2
+  },
+  {
+    "url": "https://carlos-pintura.brotea.dev",
+    "name": "Carlos Pintura",
+    "slug": "carlos-pintura",
+    "status": "production",
+    "creator": "crbrotea",
+    "repo_url": "https://github.com/BroteaConnect/carlos-pintura",
+    "created_at": "2026-07-15T12:52:25.092053+00:00",
+    "creator_name": "Cristhian",
+    "open_features": 0,
+    "deployed_features": 2
+  },
+  {
+    "url": "https://widgetbook.brotea.dev",
+    "name": "Brotea Widgetbook",
+    "slug": "widgetbook",
+    "status": "production",
+    "creator": "crbrotea",
+    "repo_url": "https://github.com/BroteaConnect/widgetbook",
+    "created_at": "2026-07-16T13:53:08.804536+00:00",
+    "creator_name": "Cristhian",
+    "open_features": 3,
+    "deployed_features": 1
+  },
+  {
+    "url": "https://rafael-news.brotea.dev",
+    "name": "Rafael Ojeda News",
+    "slug": "rafael-news",
+    "status": "landing",
+    "creator": "crbrotea",
+    "repo_url": "https://github.com/BroteaConnect/rafael-news",
+    "created_at": "2026-07-20T09:59:54.118775+00:00",
+    "creator_name": "Cristhian",
+    "open_features": 1,
+    "deployed_features": 1
+  },
+  {
+    "url": null,
+    "name": "IQVIA Authenticator",
+    "slug": "iqvia",
+    "status": "idea",
+    "creator": "crbrotea",
+    "repo_url": "https://github.com/BroteaConnect/iqvia",
+    "created_at": "2026-07-20T10:15:46.389277+00:00",
+    "creator_name": "Cristhian",
+    "open_features": 1,
+    "deployed_features": 0
+  },
+  {
+    "url": "https://borja.brotea.dev",
+    "name": "Borja",
+    "slug": "borja",
+    "status": "production",
+    "creator": "crbrotea",
+    "repo_url": "https://github.com/BroteaConnect/borja",
+    "created_at": "2026-07-22T10:16:10.902736+00:00",
+    "creator_name": "Cristhian",
+    "open_features": 1,
+    "deployed_features": 0
+  },
+  {
+    "url": "https://landing.brotea.dev",
+    "name": "Landing",
+    "slug": "landing",
+    "status": "production",
+    "creator": "crbrotea",
+    "repo_url": "https://github.com/BroteaConnect/landing",
+    "created_at": "2026-07-22T10:26:44.017486+00:00",
+    "creator_name": "Cristhian",
+    "open_features": 1,
+    "deployed_features": 0
+  },
+  {
+    "url": "https://toby.brotea.dev",
+    "name": "Toby",
+    "slug": "toby",
+    "status": "production",
+    "creator": "crbrotea",
+    "repo_url": "https://github.com/BroteaConnect/toby",
+    "created_at": "2026-07-23T13:05:29.162544+00:00",
+    "creator_name": "Cristhian",
+    "open_features": 0,
+    "deployed_features": 4
+  },
+  {
+    "url": "https://cerradurainteligente.brotea.dev",
+    "name": "Cerradura Inteligente",
+    "slug": "cerradurainteligente",
+    "status": "production",
+    "creator": "crbrotea",
+    "repo_url": "https://github.com/BroteaConnect/cerradurainteligente",
+    "created_at": "2026-07-27T18:53:49.0561+00:00",
+    "creator_name": "Cristhian",
+    "open_features": 0,
+    "deployed_features": 0
+  },
+  {
+    "url": "https://carlos.brotea.dev",
+    "name": "Carlos Garcia",
+    "slug": "carlos",
+    "status": "production",
+    "creator": "crbrotea",
+    "repo_url": "https://github.com/BroteaConnect/carlos",
+    "created_at": "2026-07-28T14:38:49.77323+00:00",
+    "creator_name": "Cristhian",
+    "open_features": 0,
+    "deployed_features": 0
+  },
+  {
+    "url": null,
+    "name": "El Árbol Madre",
+    "slug": "arbol-madre",
+    "status": "development",
+    "creator": "crbrotea",
+    "repo_url": null,
+    "created_at": "2026-07-28T18:52:00.916705+00:00",
+    "creator_name": "Cristhian",
+    "open_features": 0,
+    "deployed_features": 0
+  },
+  {
+    "url": "https://maria-landing-empresa-limpieza.brotea.dev",
+    "name": "María Limpieza del Hogar",
+    "slug": "maria-landing-empresa-limpieza",
+    "status": "production",
+    "creator": "crbrotea",
+    "repo_url": "https://github.com/BroteaConnect/maria-landing-empresa-limpieza",
+    "created_at": "2026-07-28T18:53:37.813592+00:00",
+    "creator_name": "Cristhian",
+    "open_features": 0,
+    "deployed_features": 0
+  }
+];
