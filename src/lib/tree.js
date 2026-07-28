@@ -257,6 +257,7 @@ export function createTree(canvas, { onSelect } = {}) {
     for (let i = pulses.length - 1; i >= 0; i--) {
       const p = pulses[i];
       const prog = (now - p.t0) / p.dur;
+      if (prog < 0) continue; // staggered pulse not started yet
       if (prog >= 1) {
         blooms.push({ x: p.fruit.x, y: p.fruit.y, t0: now, big: p.big });
         pulses.splice(i, 1);
