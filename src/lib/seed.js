@@ -109,18 +109,6 @@ export const SEED_PROJECTS = [
     "deployed_features": 0
   },
   {
-    "url": "https://carlos.brotea.dev",
-    "name": "Carlos Garcia",
-    "slug": "carlos",
-    "status": "production",
-    "creator": "crbrotea",
-    "repo_url": "https://github.com/BroteaConnect/carlos",
-    "created_at": "2026-07-28T14:38:49.77323+00:00",
-    "creator_name": "Cristhian",
-    "open_features": 0,
-    "deployed_features": 0
-  },
-  {
     "url": null,
     "name": "El Árbol Madre",
     "slug": "arbol-madre",
