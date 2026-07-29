@@ -1,4 +1,5 @@
 ---
+import '../styles/theme.css';
 // El Árbol Madre — brotea.dev
 // One living organism: every fruit is a real project of the Brotea factory,
 // updated from the events stream. Built by the factory itself.
@@ -90,7 +91,7 @@
       html, body { height: 100%; }
       body {
         margin: 0;
-        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        font-family: var(--font-sans);
         color: var(--ink);
         background: linear-gradient(var(--bg-a), var(--bg-b));
         overflow: hidden;
@@ -134,7 +135,7 @@
       }
       #card .links { display: grid; gap: 0.4rem; }
       #card .links a {
-        display: block; padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.88rem;
+        display: block; padding: 0.5rem 0.75rem; border-radius: var(--radius); font-size: 0.88rem;
         text-decoration: none; color: var(--ink); border: 1px solid var(--line);
       }
       #card .links a.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 650; }
@@ -158,7 +159,7 @@
       .dot.ripe { background: var(--accent); box-shadow: 0 0 8px var(--halo); }
       .credit { margin: 0; font-size: 0.78rem; color: var(--muted); }
 
-      @media (max-width: 640px) {
+      @media (max-width: var(--container)) {
         header { max-width: 14rem; }
         #card { top: auto; bottom: 4.6rem; right: 0.8rem; width: min(20rem, calc(100vw - 1.6rem)); }
         footer { bottom: 0.6rem; }
