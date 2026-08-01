@@ -1,53 +1,63 @@
 ---
-import '../styles/theme.css';
+import LanguageSwitcher from '../../components/LanguageSwitcher.astro';
+import { alternates, dirOf, localePath, localePaths, stripLocale, t } from '../../lib/i18n';
+import '../../styles/theme.css';
+
+// One file, every language: / (es) and /en/.
+export const getStaticPaths = localePaths;
+const { locale } = Astro.props;
+const i18nPath = stripLocale(Astro.url.pathname);
+const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).href : href);
 // El Árbol Madre — brotea.dev
 // One living organism: every fruit is a real project of the Brotea factory,
 // updated from the events stream. Built by the factory itself.
 ---
 
-<html lang="es">
+<html lang={locale} dir={dirOf(locale)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Brotea — El Árbol Madre</title>
-    <meta
-      name="description"
-      content="El software de Brotea, brotando en directo: cada fruto es un proyecto real creado por la fábrica autónoma."
-    />
+    <title>{t(locale, 'page.title')}</title>
+    <meta name="description" content={t(locale, 'page.description')} />
+    {alternates(i18nPath).map((a) => (
+      <link rel="alternate" hreflang={a.hreflang} href={abs(a.href)} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={abs(localePath('es', i18nPath))} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       <script is:inline defer src={import.meta.env.PUBLIC_UMAMI_SRC} data-website-id={import.meta.env.PUBLIC_UMAMI_WEBSITE_ID}></script>
       <script is:inline defer id="brotea-errors" src="/brotea-errors.js" data-dsn={import.meta.env.PUBLIC_GLITCHTIP_DSN}></script>
   </head>
   <body>
-    <canvas id="tree" aria-label="Árbol con los proyectos de Brotea; cada fruto es un proyecto"></canvas>
+    <canvas id="tree" aria-label={t(locale, 'tree.aria')}></canvas>
 
     <header>
       <p class="wordmark">brotea<span>.dev</span></p>
-      <h1>El Árbol Madre</h1>
-      <p class="tagline">El software, brotando en directo.</p>
-      <p class="stats" id="stats" aria-live="polite">cargando el vivero…</p>
+      <h1>{t(locale, 'hero.title')}</h1>
+      <p class="tagline">{t(locale, 'hero.tagline')}</p>
+      <p class="stats" id="stats" aria-live="polite">{t(locale, 'stats.loading')}</p>
+      <LanguageSwitcher locale={locale} />
     </header>
 
     <aside id="card" aria-live="polite">
-      <button id="card-close" aria-label="Cerrar ficha">×</button>
+      <button id="card-close" aria-label={t(locale, 'card.close')}>×</button>
       <h2 id="card-name"></h2>
       <p class="meta"><span id="card-status" class="chip"></span> <span id="card-creator"></span></p>
       <p class="counts" id="card-counts"></p>
       <nav class="links">
-        <a id="card-url" target="_blank" rel="noopener" class="primary">Visitar en producción ↗</a>
-        <a id="card-repo" target="_blank" rel="noopener">Código en GitHub ↗</a>
-        <a id="card-topic" target="_blank" rel="noopener">Conversación en Telegram ↗</a>
+        <a id="card-url" target="_blank" rel="noopener" class="primary">{t(locale, 'card.visit')}</a>
+        <a id="card-repo" target="_blank" rel="noopener">{t(locale, 'card.repo')}</a>
+        <a id="card-topic" target="_blank" rel="noopener">{t(locale, 'card.topic')}</a>
       </nav>
     </aside>
 
     <footer>
-      <ul class="legend" aria-label="Leyenda de estados">
-        <li><i class="dot bud"></i> yema — idea</li>
-        <li><i class="dot blossom"></i> flor — landing</li>
-        <li><i class="dot green"></i> fruto — en desarrollo</li>
-        <li><i class="dot ripe"></i> fruto maduro — en producción</li>
+      <ul class="legend" aria-label={t(locale, 'legend.aria')}>
+        <li><i class="dot bud"></i> {t(locale, 'legend.bud')}</li>
+        <li><i class="dot blossom"></i> {t(locale, 'legend.blossom')}</li>
+        <li><i class="dot green"></i> {t(locale, 'legend.green')}</li>
+        <li><i class="dot ripe"></i> {t(locale, 'legend.ripe')}</li>
       </ul>
-      <p class="credit">cultivado por la propia fábrica 🌱</p>
+      <p class="credit">{t(locale, 'credit')}</p>
     </footer>
 
     <style is:global>
@@ -168,13 +178,15 @@ import '../styles/theme.css';
     </style>
 
     <script>
-      import { createTree } from '../lib/tree.js';
-      import { startPolling, BLOOM_EVENTS } from '../lib/data.js';
+      import { createTree } from '../../lib/tree.js';
+      import { startPolling, BLOOM_EVENTS } from '../../lib/data.js';
+      import { DEFAULT_LOCALE, isLocale, t } from '../../lib/i18n';
 
-      const STATUS_ES = {
-        idea: 'idea', landing: 'landing', requirements: 'requisitos',
-        development: 'en desarrollo', production: 'en producción', archived: 'archivado',
-      };
+      // Astro ships ONE bundle for every route, so the language is read from
+      // the <html lang> the page rendered with.
+      const htmlLang = document.documentElement.lang;
+      const locale = isLocale(htmlLang) ? htmlLang : DEFAULT_LOCALE;
+      const _ = (key, vars) => t(locale, key, vars);
 
       const card = document.getElementById('card');
       const stats = document.getElementById('stats');
@@ -183,10 +195,12 @@ import '../styles/theme.css';
       function showCard(p) {
         if (!p) { card.classList.remove('open'); return; }
         $('card-name').textContent = p.name;
-        $('card-status').textContent = STATUS_ES[p.status] ?? p.status;
-        $('card-creator').textContent = `plantado por @${p.creator ?? 'brotea'}`;
-        $('card-counts').textContent =
-          `${p.deployed_features ?? 0} features desplegadas · ${p.open_features ?? 0} en la savia`;
+        $('card-status').textContent = p.status ? _(`status.${p.status}`) : '';
+        $('card-creator').textContent = _('card.planted', { creator: p.creator ?? 'brotea' });
+        $('card-counts').textContent = [
+          _('card.deployed', { count: p.deployed_features ?? 0 }),
+          _('card.open', { count: p.open_features ?? 0 }),
+        ].join(' · ');
         for (const [id, href] of [['card-url', p.url], ['card-repo', p.repo_url], ['card-topic', p.topic_url]]) {
           const a = $(id);
           if (href) { a.href = href; a.classList.remove('hidden'); } else { a.classList.add('hidden'); }
@@ -215,9 +229,10 @@ import '../styles/theme.css';
           current = projects;
           tree.setData(projects);
           const prod = projects.filter((p) => p.status === 'production').length;
+          const summary = _('stats.summary', { projects: projects.length, prod });
           stats.innerHTML = live
-            ? `${projects.length} proyectos · ${prod} en producción · <span class="live">● en vivo</span>`
-            : `${projects.length} proyectos · ${prod} en producción · sin conexión con la fábrica`;
+            ? `${summary} · <span class="live">${_('stats.live')}</span>`
+            : `${summary} · ${_('stats.offline')}`;
           // Deep link: brotea.dev/#slug opens that project's card.
           if (!card.classList.contains('open')) openFromHash();
         },
