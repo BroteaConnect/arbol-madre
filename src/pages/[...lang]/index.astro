@@ -186,7 +186,7 @@ const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).href : hre
       // the <html lang> the page rendered with.
       const htmlLang = document.documentElement.lang;
       const locale = isLocale(htmlLang) ? htmlLang : DEFAULT_LOCALE;
-      const _ = (key, vars) => t(locale, key, vars);
+      const _ = (key: string, vars?: Record<string, string | number>) => t(locale, key, vars);
 
       const card = document.getElementById('card');
       const stats = document.getElementById('stats');
@@ -202,7 +202,7 @@ const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).href : hre
           _('card.open', { count: p.open_features ?? 0 }),
         ].join(' · ');
         for (const [id, href] of [['card-url', p.url], ['card-repo', p.repo_url], ['card-topic', p.topic_url]]) {
-          const a = $(id);
+          const a = $(id) as HTMLAnchorElement;
           if (href) { a.href = href; a.classList.remove('hidden'); } else { a.classList.add('hidden'); }
         }
         card.classList.add('open');
