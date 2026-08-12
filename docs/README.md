@@ -14,31 +14,42 @@ Live at https://app.brotea.dev (destination brotea.dev).
 - [tree-language.md](tree-language.md) — the visual metaphor: limbs,
   fruits, sap pulses, blooms, and how the tree scales.
 - [jobs-tree.md](jobs-tree.md) — the second tree at `/jobs`: every leaf a
-  job offer, every limb a company. Data contract, how a company publishes
-  and the leaf language.
+  job offer, every limb a company. Data contract, how a company publishes,
+  the leaf language, expiry on a static site and the species contract.
 
 ## Architecture
 
-Static Astro site, no runtime dependencies. Everything renders on a
-single full-viewport `<canvas>`.
+Static Astro site, no runtime dependencies. Each page renders a
+full-viewport `<canvas>`; `/jobs` additionally server-renders its offer
+list as plain HTML, so it survives with JavaScript off.
+
+Routes (one file per page, every language from `src/pages/[...lang]/`):
+
+| URL | Page |
+| --- | --- |
+| `/`, `/en/` | the mother tree (`index.astro`) |
+| `/jobs`, `/en/jobs` | the job tree (`jobs.astro`) |
 
 | Piece | Role |
 | --- | --- |
 | `src/lib/tree.js` | Dependency-free canvas 2D engine: layout, drawing, animation, hit-testing. Parameterised by a **species** — the mother tree and the job tree are two species of the same engine. |
 | `src/lib/data.js` | Polls `https://api.brotea.dev/garden` every 15 s; deduplicates events; falls back to the seed. |
 | `src/lib/seed.js` | Baked project snapshot shown when the API is unreachable. |
-| `src/lib/jobs.js` | Job offers: active-offer filtering, localisation and `JOB_SPECIES` (see [jobs-tree.md](jobs-tree.md)). |
+| `src/lib/jobs.js` | Job offers: active-offer filtering, tone, localisation and `JOB_SPECIES` (see [jobs-tree.md](jobs-tree.md)). Pure and DOM-free, so `node --test` can import it. |
+| `src/data/jobs.json` | The curated job offers. Merging this file is how a company publishes; `src/locales/jobs-data.test.mjs` is its gate. |
 | `src/styles/tree-palette.css` | The botanical palette the canvas reads (`--leaf`, `--wood`, …) plus the shared page shell. **Not** in the generated `theme.css`: a tree page that skips this file draws in black. |
 
 Key engineering properties:
 
-- **Deterministic shape.** Branch geometry is derived from a per-slug
-  hash (FNV-1a feeding a small PRNG), so the tree keeps the exact same
-  shape across polls and reloads — only fruit state and animations change.
+- **Deterministic shape.** Branch geometry is derived from a hash of the
+  species' key — a project slug, an offer id — (FNV-1a feeding a small
+  PRNG), so a tree keeps the exact same shape across polls and reloads;
+  only state and animations change.
 - **Interaction.** Hover highlights a fruit with its name and state;
   click opens the project card (production URL, GitHub repo, Telegram
   topic, open/deployed feature counts). Deep link `/#<slug>` opens that
-  card on load, and `hashchange` is handled.
+  card on load, and `hashchange` is handled. `/jobs#<offer-id>` does the
+  same for an offer.
 - **Accessibility.** `prefers-reduced-motion: reduce` renders a still
   tree (no pulses, no blooms). `prefers-color-scheme` drives day/night
   themes; colors come from CSS custom properties in the Brotea palette
@@ -50,8 +61,14 @@ Key engineering properties:
 ## Build and deploy
 
 ```bash
-npm ci && npm run build   # what CI runs (GitHub Actions)
+npm ci && npm test   # what CI runs (GitHub Actions)
 ```
+
+`npm test` is the whole gate in one line: build stamp → `node --test
+src/locales/*.test.mjs` (the locale catalogue and the job data contract) →
+`astro check` → `astro build`. A second CI job builds the real
+`Dockerfile` image and checks it actually contains the built site — green
+`npm ci` was never proof of a green deploy.
 
 The static output is served by nginx via the multi-stage `Dockerfile`.
 Deployed with Coolify to production.

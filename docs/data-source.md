@@ -1,7 +1,9 @@
 # Data source: the `/garden` endpoint
 
-The tree is fed by a single public, read-only endpoint served by
-brotea-requirements-api:
+The **mother tree** is fed by a single public, read-only endpoint served by
+brotea-requirements-api. (The job tree at `/jobs` has no endpoint at all:
+its data is baked from `src/data/jobs.json` at build time — see
+[jobs-tree.md](jobs-tree.md).)
 
 ```bash
 curl https://api.brotea.dev/garden
@@ -25,7 +27,8 @@ curl https://api.brotea.dev/garden
     }
   ],
   "events": [
-    { "id": 123, "event_type": "deployment.completed", "project_slug": "carlos-pintura" }
+    { "id": 123, "event_type": "deployment.completed", "project": "carlos-pintura",
+      "created_at": "2026-07-28T09:59:12.113Z" }
   ]
 }
 ```
@@ -38,7 +41,9 @@ curl https://api.brotea.dev/garden
   together with `open_features` / `deployed_features`.
 - `events[]` — recent factory events, newest first
   (`feature.proposed`, `feature.pr_opened`, `deployment.completed`, …).
-  Each event animates as a sap pulse toward its project's fruit;
+  The project is named in **`project`** (a slug, not `project_slug`) —
+  that is the key `index.astro` reads, and an event without it is
+  skipped. Each event animates as a sap pulse toward its project's fruit;
   `deployment.completed` additionally blooms (petal burst).
 
 ## Polling behavior (`src/lib/data.js`)
@@ -53,5 +58,6 @@ curl https://api.brotea.dev/garden
 
 If the API is unreachable or returns a non-2xx response, the tree
 renders the baked snapshot in `src/lib/seed.js` and the stats line shows
-"sin conexión con la fábrica". Polling keeps running; the tree switches
+`stats.offline` in the page's language ("sin conexión con la fábrica" /
+"no connection to the factory"). Polling keeps running; the tree switches
 back to live data on the first successful response.

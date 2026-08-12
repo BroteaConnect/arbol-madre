@@ -14,6 +14,9 @@ is a job offer there. See [jobs-tree.md](jobs-tree.md).)
   With several creators, each person's limbs fan side by side.
 - **Fruit** — a project. Hover shows its name and state; click opens the
   project card. `/#<slug>` deep-links straight to a fruit's card.
+- **Leaf clusters** — decoration on the mother tree only, and never
+  clickable. The job tree switches them off, because there a leaf is an
+  offer.
 
 ## Fruit states
 
@@ -25,6 +28,9 @@ The fruit's look mirrors `projects.status` in the factory database:
 | Blossom | `landing` |
 | Green fruit | `requirements` / `development` |
 | Glowing ripe fruit | `production` |
+
+A ripe fruit is also drawn slightly larger (9 px against 7 px), and
+`archived` has no shape of its own: it falls back to the green fruit.
 
 ## Sap and blooms
 
