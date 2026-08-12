@@ -2,6 +2,9 @@
 import LanguageSwitcher from '../../components/LanguageSwitcher.astro';
 import { alternates, dirOf, localePath, localePaths, stripLocale, t } from '../../lib/i18n';
 import '../../styles/theme.css';
+// The canvas palette lives here so /jobs can grow the same tree — see the
+// header of tree-palette.css. Order matters: after theme.css.
+import '../../styles/tree-palette.css';
 
 // One file, every language: / (es) and /en/.
 export const getStaticPaths = localePaths;
@@ -35,6 +38,9 @@ const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).href : hre
       <h1>{t(locale, 'hero.title')}</h1>
       <p class="tagline">{t(locale, 'hero.tagline')}</p>
       <p class="stats" id="stats" aria-live="polite">{t(locale, 'stats.loading')}</p>
+      <nav class="crosslink">
+        <a href={localePath(locale, '/jobs')}>{t(locale, 'nav.jobs')}</a>
+      </nav>
       <LanguageSwitcher locale={locale} />
     </header>
 
@@ -60,54 +66,9 @@ const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).href : hre
       <p class="credit">{t(locale, 'credit')}</p>
     </footer>
 
-    <style is:global>
-      :root {
-        --bg-a: #f4f9f2;
-        --bg-b: #ffffff;
-        --ink: #26302a;
-        --ink-2: #4c5850;
-        --muted: #7c8781;
-        --accent: #1a7f37;
-        --halo: #9be3ae;
-        --leaf: #4c9f63;
-        --leaf-soft: #b7dcbf;
-        --bud: #5a8f6a;
-        --blossom: #e9f7ec;
-        --wood: #6b5b45;
-        --soil: #b9a98e;
-        --surface: rgba(255, 255, 255, 0.86);
-        --line: #d9e2da;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg-a: #0a120d;
-          --bg-b: #101a13;
-          --ink: #e4ece5;
-          --ink-2: #b9c6bc;
-          --muted: #7e8a81;
-          --accent: #4dbd6a;
-          --halo: #1f4a2c;
-          --leaf: #3f8f57;
-          --leaf-soft: #23402c;
-          --bud: #629a74;
-          --blossom: #d9efdd;
-          --wood: #8a7a63;
-          --soil: #4a4234;
-          --surface: rgba(13, 21, 16, 0.88);
-          --line: #263229;
-        }
-      }
-      * { box-sizing: border-box; }
-      html, body { height: 100%; }
-      body {
-        margin: 0;
-        font-family: var(--font-sans);
-        color: var(--ink);
-        background: linear-gradient(var(--bg-a), var(--bg-b));
-        overflow: hidden;
-      }
-    </style>
-
+    <!-- The colour palette and the page shell (reset, body background) moved
+         to src/styles/tree-palette.css, imported above, so the job tree reads
+         exactly the same greens. -->
     <style>
       #tree { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
 
@@ -127,6 +88,18 @@ const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).href : hre
         font-variant-numeric: tabular-nums;
       }
       .stats .live { color: var(--accent); font-weight: 650; }
+
+      /* `header` above is pointer-events: none so clicks reach the canvas —
+         a link inside it has to take them back or it is dead on arrival. */
+      .crosslink { margin: 0.5rem 0 0; }
+      .crosslink a {
+        pointer-events: auto;
+        display: inline-block; font-size: 0.85rem; font-weight: 650;
+        color: var(--accent); text-decoration: none;
+        padding: 0.25rem 0.6rem; border: 1px solid var(--line); border-radius: 99px;
+        background: var(--surface);
+      }
+      .crosslink a:hover { border-color: var(--accent); }
 
       #card {
         position: fixed; top: 1.4rem; right: 1.4rem; width: min(20rem, calc(100vw - 2.8rem));

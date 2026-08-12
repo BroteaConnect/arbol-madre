@@ -13,6 +13,9 @@ Live at https://app.brotea.dev (destination brotea.dev).
   and the offline fallback.
 - [tree-language.md](tree-language.md) — the visual metaphor: limbs,
   fruits, sap pulses, blooms, and how the tree scales.
+- [jobs-tree.md](jobs-tree.md) — the second tree at `/jobs`: every leaf a
+  job offer, every limb a company. Data contract, how a company publishes
+  and the leaf language.
 
 ## Architecture
 
@@ -21,9 +24,11 @@ single full-viewport `<canvas>`.
 
 | Piece | Role |
 | --- | --- |
-| `src/lib/tree.js` | Dependency-free canvas 2D engine: layout, drawing, animation, hit-testing. |
+| `src/lib/tree.js` | Dependency-free canvas 2D engine: layout, drawing, animation, hit-testing. Parameterised by a **species** — the mother tree and the job tree are two species of the same engine. |
 | `src/lib/data.js` | Polls `https://api.brotea.dev/garden` every 15 s; deduplicates events; falls back to the seed. |
 | `src/lib/seed.js` | Baked project snapshot shown when the API is unreachable. |
+| `src/lib/jobs.js` | Job offers: active-offer filtering, localisation and `JOB_SPECIES` (see [jobs-tree.md](jobs-tree.md)). |
+| `src/styles/tree-palette.css` | The botanical palette the canvas reads (`--leaf`, `--wood`, …) plus the shared page shell. **Not** in the generated `theme.css`: a tree page that skips this file draws in black. |
 
 Key engineering properties:
 

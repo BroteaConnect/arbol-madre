@@ -15,6 +15,11 @@ roots to the fruit each event concerns, and deploys bloom.
   development, glowing ripe fruit = production. Click a fruit for the
   project card (production URL, repo, Telegram topic). Deep link:
   `/#<slug>`.
+- **Job tree**: a second tree at `/jobs` (`/en/jobs`) where every **leaf**
+  is a job offer and every limb the company that published it. Offers are
+  curated data in `src/data/jobs.json` — merging that file *is* publishing —
+  and the list also renders without JavaScript. See
+  [docs/jobs-tree.md](docs/jobs-tree.md).
 - **Respect**: `prefers-reduced-motion` renders a still tree;
   `prefers-color-scheme` themes day/night.
 

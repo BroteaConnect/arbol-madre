@@ -1,0 +1,137 @@
+{
+  "generated_at": "2026-08-12T00:00:00Z",
+  "_readme": "Publication surface of the job tree. A company publishes by getting an entry into this file (see docs/jobs-tree.md); the merge IS the publication. Seed entries use reserved .example domains on purpose — replace them with real postings, never point a leaf at a URL nobody curated. Contract enforced by src/locales/jobs-data.test.mjs.",
+  "companies": [
+    {
+      "slug": "acme-studio",
+      "name": "Acme Studio",
+      "url": "https://acme.example",
+      "location": "Madrid, ES"
+    },
+    {
+      "slug": "verdemar-labs",
+      "name": "Verdemar Labs",
+      "url": "https://verdemar.example",
+      "location": "A Coruña, ES"
+    },
+    {
+      "slug": "huerto-digital",
+      "name": "Huerto Digital",
+      "url": null,
+      "location": "Remoto"
+    }
+  ],
+  "offers": [
+    {
+      "id": "acme-studio-frontend-2026-08",
+      "company": "acme-studio",
+      "title": { "es": "Desarrolladora frontend", "en": "Frontend developer" },
+      "summary": {
+        "es": "Interfaces accesibles en Astro y TypeScript para producto propio, con diseño en el mismo equipo.",
+        "en": "Accessible Astro and TypeScript interfaces for an in-house product, with design in the same team."
+      },
+      "modality": "remote",
+      "contract": "full_time",
+      "seniority": "mid",
+      "location": "Madrid, ES",
+      "url": "https://acme.example/jobs/frontend",
+      "published_at": "2026-08-10",
+      "expires_at": "2026-09-10"
+    },
+    {
+      "id": "acme-studio-product-design-2026-07",
+      "company": "acme-studio",
+      "title": { "es": "Diseñador de producto", "en": "Product designer" },
+      "summary": {
+        "es": "Sistema de diseño y prototipos para las herramientas internas del estudio, media jornada.",
+        "en": "Design system and prototypes for the studio's internal tooling, half time."
+      },
+      "modality": "hybrid",
+      "contract": "part_time",
+      "seniority": "senior",
+      "location": "Madrid, ES",
+      "url": "https://acme.example/jobs/product-design",
+      "published_at": "2026-07-15",
+      "expires_at": "2026-08-16"
+    },
+    {
+      "id": "acme-studio-qa-intern-2026-07",
+      "company": "acme-studio",
+      "title": { "es": "Prácticas de QA", "en": "QA internship" },
+      "summary": {
+        "es": "Seis meses de prácticas remuneradas escribiendo pruebas end to end junto al equipo de calidad.",
+        "en": "Six paid months writing end to end tests alongside the quality team."
+      },
+      "modality": "onsite",
+      "contract": "internship",
+      "seniority": "junior",
+      "location": "Madrid, ES",
+      "url": "https://acme.example/jobs/qa-internship",
+      "published_at": "2026-07-28",
+      "expires_at": "2026-09-30"
+    },
+    {
+      "id": "verdemar-labs-data-engineer-2026-08",
+      "company": "verdemar-labs",
+      "title": { "es": "Ingeniera de datos", "en": "Data engineer" },
+      "summary": {
+        "es": "Canalizaciones de datos oceanográficos: Python, Postgres y mucho dato sucio que ordenar.",
+        "en": "Oceanographic data pipelines: Python, Postgres and plenty of messy data to tidy up."
+      },
+      "modality": "remote",
+      "contract": "freelance",
+      "seniority": "senior",
+      "location": "Remoto (UTC+1 ± 2h)",
+      "url": "https://verdemar.example/careers/data-engineer",
+      "published_at": "2026-08-01",
+      "expires_at": null
+    },
+    {
+      "id": "verdemar-labs-support-2026-06",
+      "company": "verdemar-labs",
+      "title": { "es": "Soporte a clientes", "en": "Customer support" },
+      "summary": {
+        "es": "Primera línea de soporte para la plataforma de sensores. Oferta ya cerrada, se conserva de ejemplo.",
+        "en": "First line support for the sensor platform. Already closed, kept here as an example."
+      },
+      "modality": "onsite",
+      "contract": "full_time",
+      "location": "A Coruña, ES",
+      "url": "https://verdemar.example/careers/support",
+      "published_at": "2026-06-01",
+      "expires_at": "2026-07-20"
+    },
+    {
+      "id": "verdemar-labs-devops-2026-08",
+      "company": "verdemar-labs",
+      "title": { "es": "Ingeniero DevOps", "en": "DevOps engineer" },
+      "summary": {
+        "es": "Despliegues reproducibles con Docker y Coolify, y guardias compartidas de forma sensata.",
+        "en": "Reproducible deploys with Docker and Coolify, and on-call shared in a sane way."
+      },
+      "modality": "hybrid",
+      "contract": "full_time",
+      "seniority": "mid",
+      "location": "A Coruña, ES",
+      "url": "https://verdemar.example/careers/devops",
+      "published_at": "2026-08-09",
+      "expires_at": "2026-09-20"
+    },
+    {
+      "id": "huerto-digital-tech-writer-2026-07",
+      "company": "huerto-digital",
+      "title": { "es": "Redactora técnica", "en": "Technical writer" },
+      "summary": {
+        "es": "Documentación de producto en español e inglés, trabajando dentro del propio repositorio.",
+        "en": "Product documentation in Spanish and English, written inside the repository itself."
+      },
+      "modality": "remote",
+      "contract": "part_time",
+      "seniority": "junior",
+      "location": "Remoto",
+      "url": "https://huerto.example/empleo/redaccion-tecnica",
+      "published_at": "2026-07-30",
+      "expires_at": "2026-10-01"
+    }
+  ]
+}
