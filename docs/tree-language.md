@@ -2,6 +2,9 @@
 
 Everything on screen means something. One tree = the Brotea factory.
 
+(The site grows a second tree at `/jobs`, with its own vocabulary — a leaf
+is a job offer there. See [jobs-tree.md](jobs-tree.md).)
+
 ## Anatomy
 
 - **Trunk** — Brotea itself.

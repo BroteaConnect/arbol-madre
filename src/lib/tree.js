@@ -2,6 +2,13 @@
 // One organism: the trunk is Brotea, each main limb belongs to a creator,
 // each fruit is a project. Factory events travel as sap pulses from the
 // roots to the fruit they concern.
+//
+// The engine grows more than one kind of tree. What an item IS lives in a
+// `species` (see SPECIES below and JOB_SPECIES in lib/jobs.js): the grouping
+// that makes a limb, the key that fixes the geometry, and how a node is
+// painted at the tip of a twig. Everything else — trunk, limbs, sway, sap,
+// hit-testing, focus ring, label — is shared, so a second tree is a species
+// and not a fork of this file.
 
 const REDUCED = typeof matchMedia !== 'undefined'
   && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -33,19 +40,69 @@ function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
-export function createTree(canvas, { onSelect } = {}) {
+/* ---------- species ---------- */
+
+// The mother tree: a project per fruit, grouped by creator. This is also the
+// default, so `createTree(canvas, { onSelect })` behaves exactly as before.
+export const PROJECT_SPECIES = {
+  groupOf: (p) => p.creator ?? 'brotea',
+  keyOf: (p) => p.slug,
+  maxPerGroup: 4,
+  clusters: true, // decorative (non-interactive) leaf clusters on the limbs
+  radiusOf: (p) => (p.status === 'production' ? 9 : 7),
+  labelOf: (p) => `${p.name} · ${STATUS_ES[p.status] ?? p.status}`,
+  colors: {}, // extra CSS custom properties, merged into `colors`
+  drawNode(ctx, p, geom, colors, state) {
+    const { x, y, r, t } = geom;
+    const still = state.reduced;
+    const status = p.status;
+
+    if (status === 'production') {
+      ctx.fillStyle = colors.halo;
+      ctx.globalAlpha = 0.45 + (still ? 0 : Math.sin(t * 2 + geom.x0) * 0.15);
+      ctx.beginPath(); ctx.arc(x, y, r * 2.1, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = colors.fruit;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    } else if (status === 'idea') {
+      ctx.strokeStyle = colors.bud; ctx.lineWidth = 2;
+      ctx.fillStyle = colors.leafSoft;
+      ctx.beginPath(); ctx.ellipse(x, y, r * 0.55, r * 0.8, 0.3, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+    } else if (status === 'landing') {
+      ctx.fillStyle = colors.blossom;
+      for (let p2 = 0; p2 < 5; p2++) {
+        const a = (p2 / 5) * Math.PI * 2 + t * (still ? 0 : 0.12);
+        ctx.beginPath();
+        ctx.ellipse(x + Math.cos(a) * r * 0.75, y + Math.sin(a) * r * 0.75, r * 0.5, r * 0.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = colors.fruit;
+      ctx.beginPath(); ctx.arc(x, y, r * 0.45, 0, Math.PI * 2); ctx.fill();
+    } else {
+      // development / requirements: a growing green fruit
+      ctx.fillStyle = colors.leaf;
+      ctx.beginPath(); ctx.arc(x, y, r * 0.85, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = colors.fruit; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(x, y, r * 0.85, 0, Math.PI * 2); ctx.stroke();
+    }
+  },
+};
+
+export function createTree(canvas, { onSelect, species } = {}) {
   const ctx = canvas.getContext('2d');
-  let projects = [];
+  const sp = { ...PROJECT_SPECIES, ...species };
+  let items = [];
   let layout = null;
   let colors = readColors();
   let hovered = null;
   let selected = null;
   const pulses = [];
   const blooms = [];
-  const born = new Map(); // slug → timestamp of first appearance, for grow-in
+  const born = new Map(); // item key → timestamp of first appearance, for grow-in
 
   function readColors() {
-    return {
+    const base = {
       wood: cssVar('--wood'),
       leaf: cssVar('--leaf'),
       leafSoft: cssVar('--leaf-soft'),
@@ -56,24 +113,28 @@ export function createTree(canvas, { onSelect } = {}) {
       halo: cssVar('--halo'),
       ground: cssVar('--soil'),
     };
+    for (const [name, prop] of Object.entries(sp.colors ?? {})) base[name] = cssVar(prop);
+    return base;
   }
 
   /* ---------- layout ---------- */
 
-  // Group projects by creator, chunked so no limb carries more than 4 fruits.
-  // With one creator today the tree still branches; with more creators each
-  // person owns their limbs, fanned side by side.
+  // Group items by whatever the species considers a limb (a creator on the
+  // mother tree, a company on the job tree), chunked so no limb carries more
+  // than `maxPerGroup` nodes. With one group the tree still branches; with
+  // more, each group owns its limbs, fanned side by side.
   function limbSpecs(list) {
-    const byCreator = new Map();
-    for (const p of list) {
-      const key = p.creator ?? 'brotea';
-      if (!byCreator.has(key)) byCreator.set(key, []);
-      byCreator.get(key).push(p);
+    const byGroup = new Map();
+    for (const item of list) {
+      const key = sp.groupOf(item);
+      if (!byGroup.has(key)) byGroup.set(key, []);
+      byGroup.get(key).push(item);
     }
+    const size = sp.maxPerGroup ?? 4;
     const specs = [];
-    for (const [creator, items] of byCreator) {
-      for (let i = 0; i < items.length; i += 4) {
-        specs.push({ creator, projects: items.slice(i, i + 4) });
+    for (const [group, members] of byGroup) {
+      for (let i = 0; i < members.length; i += size) {
+        specs.push({ group, items: members.slice(i, i + size) });
       }
     }
     return specs;
@@ -106,14 +167,14 @@ export function createTree(canvas, { onSelect } = {}) {
       [rootX + 2, trunkTop],
     ];
 
-    const specs = limbSpecs(projects);
+    const specs = limbSpecs(items);
     const n = specs.length;
-    const fruits = [];
+    const nodes = [];
     const limbs = [];
     const leaves = [];
 
     specs.forEach((spec, i) => {
-      const rand = rng(hash(spec.creator + i));
+      const rand = rng(hash(spec.group + i));
       // Fan angle: leftmost limb ≈ -145°, rightmost ≈ -35° (screen coords).
       const t = n === 1 ? 0.5 : i / (n - 1);
       const angle = -Math.PI * (0.86 - t * 0.72);
@@ -122,28 +183,32 @@ export function createTree(canvas, { onSelect } = {}) {
       const limb = polyline(start[0], start[1], angle, len, 4, (0.5 - t) * -0.08, rand);
       limbs.push({ path: limb, width: 7 });
 
-      spec.projects.forEach((p, j) => {
-        const along = 0.45 + (j / Math.max(spec.projects.length - 1, 1)) * 0.55;
+      spec.items.forEach((p, j) => {
+        const along = 0.45 + (j / Math.max(spec.items.length - 1, 1)) * 0.55;
         const idx = Math.min(Math.floor(along * (limb.length - 1)), limb.length - 2);
         const base = limb[idx];
         const side = j % 2 === 0 ? 1 : -1;
         const twigAngle = angle + side * (0.55 + rand() * 0.4);
         const twig = polyline(base[0], base[1], twigAngle, 34 + rand() * 30, 2, 0.15 * side, rand);
         limbs.push({ path: twig, width: 2.5 });
-        leaves.push({ x: base[0], y: base[1], seed: hash(p.slug) });
+        const seed = hash(sp.keyOf(p));
+        if (sp.clusters) leaves.push({ x: base[0], y: base[1], seed });
         const tip = twig[twig.length - 1];
-        fruits.push({
-          project: p,
+        nodes.push({
+          item: p,
+          seed,
           x: tip[0],
-          y: tip[1] + 7, // fruit hangs just below the twig tip
-          r: p.status === 'production' ? 9 : 7,
+          y: tip[1] + 7, // the node hangs just below the twig tip
+          r: sp.radiusOf(p),
           path: trunk.concat(limb.slice(1, idx + 1), twig.slice(1), [[tip[0], tip[1] + 7]]),
         });
       });
-      leaves.push({ x: limb[limb.length - 1][0], y: limb[limb.length - 1][1], seed: hash(spec.creator + i) });
+      if (sp.clusters) {
+        leaves.push({ x: limb[limb.length - 1][0], y: limb[limb.length - 1][1], seed: hash(spec.group + i) });
+      }
     });
 
-    layout = { w, h, ground, trunk, limbs, fruits, leaves, scale };
+    layout = { w, h, ground, trunk, limbs, nodes, leaves, scale };
   }
 
   /* ---------- drawing ---------- */
@@ -179,51 +244,24 @@ export function createTree(canvas, { onSelect } = {}) {
     ctx.globalAlpha = 1;
   }
 
-  function drawFruit(f, now, t) {
-    const grow = Math.min((now - (born.get(f.project.slug) ?? 0)) / 900, 1);
+  // Shared for every species: grow-in, sway, focus ring and label. Only the
+  // shape hanging at the tip belongs to the species.
+  function drawNode(f, now, t) {
+    const grow = Math.min((now - (born.get(sp.keyOf(f.item)) ?? 0)) / 900, 1);
     const r = f.r * (REDUCED ? 1 : 0.2 + 0.8 * grow);
     const x = f.x + sway(f.y, t), y = f.y;
-    const status = f.project.status;
-    const focus = f === hovered || f.project.slug === selected;
+    const focus = f === hovered || sp.keyOf(f.item) === selected;
+    const geom = { x, y, r, t, now, seed: f.seed, x0: f.x, y0: f.y };
 
-    if (status === 'production') {
-      ctx.fillStyle = colors.halo;
-      ctx.globalAlpha = 0.45 + (REDUCED ? 0 : Math.sin(t * 2 + f.x) * 0.15);
-      ctx.beginPath(); ctx.arc(x, y, r * 2.1, 0, Math.PI * 2); ctx.fill();
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = colors.fruit;
-      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-    } else if (status === 'idea') {
-      ctx.strokeStyle = colors.bud; ctx.lineWidth = 2;
-      ctx.fillStyle = colors.leafSoft;
-      ctx.beginPath(); ctx.ellipse(x, y, r * 0.55, r * 0.8, 0.3, 0, Math.PI * 2);
-      ctx.fill(); ctx.stroke();
-    } else if (status === 'landing') {
-      ctx.fillStyle = colors.blossom;
-      for (let p = 0; p < 5; p++) {
-        const a = (p / 5) * Math.PI * 2 + t * (REDUCED ? 0 : 0.12);
-        ctx.beginPath();
-        ctx.ellipse(x + Math.cos(a) * r * 0.75, y + Math.sin(a) * r * 0.75, r * 0.5, r * 0.5, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.fillStyle = colors.fruit;
-      ctx.beginPath(); ctx.arc(x, y, r * 0.45, 0, Math.PI * 2); ctx.fill();
-    } else {
-      // development / requirements: a growing green fruit
-      ctx.fillStyle = colors.leaf;
-      ctx.beginPath(); ctx.arc(x, y, r * 0.85, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = colors.fruit; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(x, y, r * 0.85, 0, Math.PI * 2); ctx.stroke();
-    }
+    sp.drawNode(ctx, f.item, geom, colors, { focus, reduced: REDUCED, grow });
 
     if (focus) {
       ctx.strokeStyle = colors.fruit; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(x, y, r + 5, 0, Math.PI * 2); ctx.stroke();
       ctx.font = '600 13px system-ui, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillStyle = colors.ink;
-      const label = `${f.project.name} · ${STATUS_ES[status] ?? status}`;
-      ctx.fillText(label, Math.min(Math.max(x, 80), layout.w - 80), y - r - 12);
+      ctx.fillStyle = colors.label || colors.ink;
+      ctx.fillText(sp.labelOf(f.item), Math.min(Math.max(x, 80), layout.w - 80), y - r - 12);
     }
   }
 
@@ -239,7 +277,7 @@ export function createTree(canvas, { onSelect } = {}) {
 
   function frame(now, t) {
     if (!layout) return;
-    const { w, h, ground, trunk, limbs, fruits, leaves } = layout;
+    const { w, h, ground, trunk, limbs, nodes, leaves } = layout;
     ctx.clearRect(0, 0, w, h);
 
     // ground
@@ -251,7 +289,7 @@ export function createTree(canvas, { onSelect } = {}) {
     drawPath(trunk, 13 * Math.max(layout.scale, 0.7), t);
     for (const limb of limbs) drawPath(limb.path, limb.width, t);
     for (const cl of leaves) drawLeafCluster(cl, t);
-    for (const f of fruits) drawFruit(f, now, t);
+    for (const f of nodes) drawNode(f, now, t);
 
     // sap pulses
     for (let i = pulses.length - 1; i >= 0; i--) {
@@ -259,11 +297,11 @@ export function createTree(canvas, { onSelect } = {}) {
       const prog = (now - p.t0) / p.dur;
       if (prog < 0) continue; // staggered pulse not started yet
       if (prog >= 1) {
-        blooms.push({ x: p.fruit.x, y: p.fruit.y, t0: now, big: p.big });
+        blooms.push({ x: p.node.x, y: p.node.y, t0: now, big: p.big });
         pulses.splice(i, 1);
         continue;
       }
-      const [px, py] = pathPoint(p.fruit.path, prog);
+      const [px, py] = pathPoint(p.node.path, prog);
       const x = px + sway(py, t);
       ctx.fillStyle = colors.fruit;
       ctx.globalAlpha = 0.9;
@@ -304,7 +342,7 @@ export function createTree(canvas, { onSelect } = {}) {
     canvas.width = canvas.clientWidth * dpr;
     canvas.height = canvas.clientHeight * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    if (projects.length) build();
+    if (items.length) build();
   }
 
   let raf = null;
@@ -313,10 +351,10 @@ export function createTree(canvas, { onSelect } = {}) {
     if (!REDUCED) raf = requestAnimationFrame(loop);
   }
 
-  function fruitAt(x, y) {
+  function nodeAt(x, y) {
     if (!layout) return null;
     let best = null, bestD = 24;
-    for (const f of layout.fruits) {
+    for (const f of layout.nodes) {
       const d = Math.hypot(f.x + sway(f.y, 0) - x, f.y - y);
       if (d < bestD) { best = f; bestD = d; }
     }
@@ -325,15 +363,15 @@ export function createTree(canvas, { onSelect } = {}) {
 
   canvas.addEventListener('pointermove', (e) => {
     const r = canvas.getBoundingClientRect();
-    hovered = fruitAt(e.clientX - r.left, e.clientY - r.top);
+    hovered = nodeAt(e.clientX - r.left, e.clientY - r.top);
     canvas.style.cursor = hovered ? 'pointer' : 'default';
     if (REDUCED) loop(0);
   });
   canvas.addEventListener('click', (e) => {
     const r = canvas.getBoundingClientRect();
-    const f = fruitAt(e.clientX - r.left, e.clientY - r.top);
-    selected = f?.project.slug ?? null;
-    onSelect?.(f?.project ?? null);
+    const f = nodeAt(e.clientX - r.left, e.clientY - r.top);
+    selected = f ? sp.keyOf(f.item) : null;
+    onSelect?.(f?.item ?? null);
     if (REDUCED) loop(0);
   });
 
@@ -349,20 +387,23 @@ export function createTree(canvas, { onSelect } = {}) {
   return {
     setData(list) {
       const now = performance.now();
-      for (const p of list) if (!born.has(p.slug)) born.set(p.slug, projects.length ? now : 0);
-      projects = list;
+      for (const p of list) {
+        const key = sp.keyOf(p);
+        if (!born.has(key)) born.set(key, items.length ? now : 0);
+      }
+      items = list;
       build();
       if (REDUCED) loop(0);
     },
-    // A factory event reached the fruit for `slug`; big=true blooms (deploys).
-    pulse(slug, big = false) {
+    // A factory event reached the node for `key`; big=true blooms (deploys).
+    pulse(key, big = false) {
       if (REDUCED || !layout) return;
-      const fruit = layout.fruits.find((f) => f.project.slug === slug);
-      if (!fruit) return;
-      pulses.push({ fruit, t0: performance.now() + pulses.length * 350, dur: 2600, big });
+      const node = layout.nodes.find((f) => sp.keyOf(f.item) === key);
+      if (!node) return;
+      pulses.push({ node, t0: performance.now() + pulses.length * 350, dur: 2600, big });
     },
-    select(slug) {
-      selected = slug;
+    select(key) {
+      selected = key;
       if (REDUCED) loop(0);
     },
     destroy() {
