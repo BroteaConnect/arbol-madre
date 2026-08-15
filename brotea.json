@@ -33,10 +33,15 @@
     "runtime": "1.0.0"
   },
   "quality": {
-    "version": "1.4.0"
+    "version": "1.4.1"
   },
   "runtime": {
     "port": 80,
     "health": "/"
+  },
+  "project": {
+    "slug": "arbol-madre",
+    "name": "Arbol Madre",
+    "description": "Arbol Madre"
   }
 }
